@@ -1,15 +1,13 @@
-num1 = float(input("Enter first number: "))
-num2 = float(input("Enter second number: "))
-
-operation = input("Choose operation (+, -, *, /): ")
-
-if operation == "+":
-    print("Result:", num1 + num2)
-elif operation == "-":
-    print("Result:", num1 - num2)
-elif operation == "*":
-    print("Result:", num1 * num2)
-elif operation == "/":
-    print("Result:", num1 / num2)
-else:
-    print("Invalid operation")
+def calculate(num1: float, num2: float, operation: str):
+    if operation == "+":
+        return num1 + num2
+    elif operation == "-":
+        return num1 - num2
+    elif operation == "*":
+        return num1 * num2
+    elif operation == "/":
+        if num2 == 0:
+            return "Cannot divide by zero"
+        return num1 / num2
+    else:
+        return "Invalid operation"
