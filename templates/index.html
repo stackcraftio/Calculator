@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Stackcraft Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --bg1:#cfe8ff;
+      --bg2:#f6d6ff;
+      --bg3:#d6fff3;
+
+      --card: rgba(255,255,255,0.28);
+      --stroke: rgba(255,255,255,0.55);
+      --shadow: 0 28px 80px rgba(16,24,40,0.20);
+
+      --text: rgba(20,26,34,0.92);
+      --muted: rgba(20,26,34,0.55);
+
+      --btn: rgba(255,255,255,0.40);
+      --btnHover: rgba(255,255,255,0.55);
+
+      --op: rgba(155,196,255,0.55);
+      --opHover: rgba(155,196,255,0.70);
+
+      --danger: rgba(255,255,255,0.35);
+      --dangerHover: rgba(255,255,255,0.55);
+
+      --eq: rgba(255,168,168,0.95);
+      --eqHover: rgba(255,150,150,0.98);
+
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", Segoe UI, Inter, Roboto, Arial, sans-serif;
+      color:var(--text);
+      overflow:hidden;
+
+      background:
+        radial-gradient(900px 650px at 18% 22%, var(--bg1), transparent 60%),
+        radial-gradient(900px 650px at 85% 30%, var(--bg2), transparent 60%),
+        radial-gradient(900px 650px at 60% 88%, var(--bg3), transparent 60%),
+        linear-gradient(135deg, #f9fbff, #fff7fd);
+    }
+
+    .watermark{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      user-select:none;
+      overflow:hidden;
+    }
+
+    .wm{
+      position:absolute;
+      font-weight:800;
+      letter-spacing:0.22em;
+      color: rgba(20,26,34,0.07);
+      transform: rotate(-14deg);
+      animation: floaty 10s ease-in-out infinite;
+      white-space: nowrap;
+      font-size: clamp(44px, 8vw, 120px);
+    }
+
+    .wm.one{ left: -12%; top: 18%; animation-duration: 11.5s; opacity: 0.55; }
+    .wm.two{ left: 10%;  top: 52%; animation-duration: 13.5s; opacity: 0.40; }
+    .wm.three{ left: 34%; top: 74%; animation-duration: 12.2s; opacity: 0.35; }
+
+    @keyframes floaty{
+      0%,100% { transform: translateY(-10px) rotate(-14deg); }
+      50%     { transform: translateY(14px) rotate(-14deg); }
+    }
+
+    .wrap{
+      position:relative;
+      width:min(390px, 92vw);
+      z-index:1;
+    }
+
+    .glow{
+      position:absolute;
+      inset:-60px;
+      z-index:-1;
+      background:
+        radial-gradient(280px 240px at 25% 25%, rgba(155,196,255,0.55), transparent 60%),
+        radial-gradient(300px 260px at 75% 65%, rgba(255,168,168,0.50), transparent 62%),
+        radial-gradient(260px 220px at 55% 92%, rgba(160,255,230,0.55), transparent 60%);
+      filter: blur(26px);
+      opacity: 0.9;
+    }
+
+    .header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom: 12px;
+      padding: 0 6px;
+    }
+
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .title h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:0.01em;
+    }
+
+    .title span{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .pill{
+      font-size:12px;
+      color: rgba(20,26,34,0.62);
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(16,24,40,0.10);
+    }
+
+    .calculator{
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      padding: 16px;
+    }
+
+    .display{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.26);
+      border: 1px solid rgba(255,255,255,0.60);
+      padding: 14px 16px;
+      text-align:right;
+      min-height: 78px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:7px;
+    }
+
+    .expr{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      min-height: 16px;
+    }
+
+    .value{
+      font-size: 40px;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .buttons{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button{
+      border: 1px solid rgba(255,255,255,0.60);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 14px 0;
+      font-size: 16px;
+      cursor:pointer;
+
+      transition: transform 140ms ease, background 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+      box-shadow: 0 12px 26px rgba(16,24,40,0.10);
+    }
+
+    button:hover{
+      background: var(--btnHover);
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(16,24,40,0.12);
+      filter: saturate(1.05);
+    }
+
+    button:active{
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 10px 18px rgba(16,24,40,0.10);
+    }
+
+    .operator{
+      background: var(--op);
+      border-color: rgba(155,196,255,0.75);
+    }
+    .operator:hover{ background: var(--opHover); }
+
+    .danger{
+      background: var(--danger);
+    }
+    .danger:hover{ background: var(--dangerHover); }
+
+    .equal{
+      background: var(--eq);
+      border-color: rgba(255,150,150,0.80);
+      color: rgba(20,26,34,0.92);
+      font-weight: 800;
+      grid-column: span 2;
+    }
+    .equal:hover{ background: var(--eqHover); }
+
+    .zero{ grid-column: span 2; }
+
+    .footer{
+      margin-top: 10px;
+      text-align:center;
+      font-size: 11px;
+      color: var(--muted);
+      padding-bottom: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Change watermark text here if you want -->
+  <div class="watermark">
+    <div class="wm one">STACKCRAFTIO</div>
+    <div class="wm two">STACKCRAFTIO</div>
+    <div class="wm three">STACKCRAFTIO</div>
+  </div>
+
+  <div class="wrap">
+    <div class="glow"></div>
+
+    <div class="header">
+      <div class="title">
+        <h1>Stackcraft Calculator</h1>
+        <span>Python + Flask</span>
+      </div>
+      <div class="pill">stackcraftio</div>
+    </div>
+
+    <div class="calculator">
+      <div class="display">
+        <div id="expr" class="expr"></div>
+        <div id="display" class="value">0</div>
+      </div>
+
+      <div class="buttons">
+        <button class="danger" onclick="clearAll()">AC</button>
+        <button class="danger" onclick="backspace()">⌫</button>
+        <button class="operator" onclick="append('%')">%</button>
+        <button class="operator" onclick="append('/')">÷</button>
+
+        <button onclick="append('7')">7</button>
+        <button onclick="append('8')">8</button>
+        <button onclick="append('9')">9</button>
+        <button class="operator" onclick="append('*')">×</button>
+
+        <button onclick="append('4')">4</button>
+        <button onclick="append('5')">5</button>
+        <button onclick="append('6')">6</button>
+        <button class="operator" onclick="append('-')">−</button>
+
+        <button onclick="append('1')">1</button>
+        <button onclick="append('2')">2</button>
+        <button onclick="append('3')">3</button>
+        <button class="operator" onclick="append('+')">+</button>
+
+        <button class="equal" onclick="calculate()">=</button>
+        <button class="zero" onclick="append('0')">0</button>
+        <button onclick="append('.')">.</button>
+      </div>
+
+      <div class="footer">© stackcraftio</div>
+    </div>
+  </div>
+
+  <script>
+    let expression = "";
+    let lastShown = "0";
+
+    const displayEl = document.getElementById("display");
+    const exprEl = document.getElementById("expr");
+
+    function render() {
+      exprEl.innerText = expression;
+      displayEl.innerText = lastShown;
+    }
+
+    function append(value) {
+      if (lastShown !== "0" && expression === "" && isResult(lastShown)) {
+        // If user just got a result and starts typing a number, start fresh
+        if (isDigit(value) || value === ".") {
+          lastShown = "0";
+        }
+      }
+
+      expression += value;
+      lastShown = expression === "" ? "0" : expression;
+      render();
+    }
+
+    function clearAll() {
+      expression = "";
+      lastShown = "0";
+      render();
+    }
+
+    function backspace() {
+      expression = expression.slice(0, -1);
+      lastShown = expression === "" ? "0" : expression;
+      render();
+    }
+
+    function calculate() {
+      if (!expression) return;
+
+      fetch("/api/calc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expr: expression })
+      })
+      .then(res => res.json())
+      .then(data => {
+        lastShown = String(data.result);
+        expression = ""; // keep it clean after result
+        render();
+      })
+      .catch(() => {
+        lastShown = "Error";
+        expression = "";
+        render();
+      });
+    }
+
+    function isDigit(v){ return v >= "0" && v <= "9"; }
+    function isResult(v){ return !isNaN(Number(v)); }
+
+    window.addEventListener("keydown", (e) => {
+      const k = e.key;
+
+      if ((k >= "0" && k <= "9") || k === ".") append(k);
+      if (["+", "-", "*", "/", "%"].includes(k)) append(k);
+
+      if (k === "Enter") calculate();
+      if (k === "Backspace") backspace();
+      if (k === "Escape") clearAll();
+    });
+
+    render();
+  </script>
+</body>
+</html>
+
